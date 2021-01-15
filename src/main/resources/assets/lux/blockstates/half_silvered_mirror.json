@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "lux:block/half_silvered_mirror" }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "lux",
+  "version": "${version}",
+  "name": "Lux",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/lux/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "io.github.stuff_stuffs.lux.client.LuxClient"
+    ],
+    "main": [
+      "io.github.stuff_stuffs.lux.common.Lux"
+    ]
+  },
+  "mixins": [
+    "lux.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.11.0",
+    "fabric": "*",
+    "minecraft": "1.17-alpha.20.51.a"
+  }
+}
