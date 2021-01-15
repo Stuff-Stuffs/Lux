@@ -11,6 +11,7 @@ public final class Blocks {
     public static final EmitterBlock EMITTER_BLOCK = register(new EmitterBlock(AbstractBlock.Settings.of(Material.GLASS)), "emitter");
     public static final MirrorBlock MIRROR_BLOCK = register(new MirrorBlock(AbstractBlock.Settings.of(Material.GLASS)), "mirror");
     public static final HalfSilveredMirrorBlock HALF_SILVERED_MIRROR_BLOCK = register(new HalfSilveredMirrorBlock(), "half_silvered_mirror");
+    public static final BrightnessMultiplierBlock BRIGHTNESS_MULTIPLIER_BLOCK = register(new BrightnessMultiplierBlock(), "brightness_multiplier");
 
     private static <T extends Block> T register(final T block, final String name) {
         return Registry.register(Registry.BLOCK, new Identifier("lux", name), block);

@@ -43,7 +43,7 @@ public class LuxBeamRenderer {
         final double cz = camera.getPos().z;
         final VertexConsumerProvider vertices = context.consumers();
         assert vertices != null;
-        final VertexConsumer vertexConsumer = vertices.getBuffer(RenderLayer.getTranslucent());
+        final VertexConsumer vertexConsumer = vertices.getBuffer(RenderLayer.getSolid()/*RenderLayer.getBeaconBeam(new Identifier("minecraft", "textures/block/white_wool.png"), true)*/);
         final MatrixStack matrices = context.matrixStack();
         final float tickDelta = context.tickDelta();
         for (final LuxBeam.RenderableBeam beam : RENDER_QUEUE) {
@@ -71,17 +71,18 @@ public class LuxBeamRenderer {
             final Quaternion quaternion = Vec3f.POSITIVE_X.getRadialQuaternion((float) pitch);
             matrices.multiply(quaternion);
         }
-        matrices.multiply(Vec3f.POSITIVE_Z.getRadialQuaternion((float) getAngle(interpolatedDirection, interpBeamPos, camera.getPos())));
+        float roll = (float) getAngle(interpolatedDirection, interpBeamPos, camera.getPos());
+        matrices.multiply(Vec3f.POSITIVE_Z.getRadialQuaternion(roll));
         final double length = beam.getLength();
         final Matrix4f model = matrices.peek().getModel();
         final Matrix3f normal = matrices.peek().getNormal();
         final RGBColour startColour = beam.getSpectrum().toColour();
         final RGBColour endColour = beam.getRemainingSpectrum(beam.getLength()).toColour();
-        renderBeamFace(model, normal, vertexConsumer, new RGBColour(0, 0, 255), endColour, length, -0.125f, -0.125f, -0.125f, 0.125f, SPRITE.getMinU(), SPRITE.getMaxU(), SPRITE.getMaxV(), SPRITE.getMinV());
-        renderBeamFace(model, normal, vertexConsumer, new RGBColour(0, 255, 0), endColour, length, 0.125f, 0.125f, 0.125f, -0.125f, SPRITE.getMaxU(), SPRITE.getMinU(), SPRITE.getMinV(), SPRITE.getMaxV());
+        renderBeamFace(model, normal, vertexConsumer, startColour, endColour, length, -0.125f, -0.125f, -0.125f, 0.125f, SPRITE.getMinU(), SPRITE.getMaxU(), SPRITE.getMaxV(), SPRITE.getMinV());
+        //renderBeamFace(model, normal, vertexConsumer, new RGBColour(0, 255, 0), endColour, length, 0.125f, 0.125f, 0.125f, -0.125f, SPRITE.getMaxU(), SPRITE.getMinU(), SPRITE.getMinV(), SPRITE.getMaxV());
 
-        renderBeamFace(model, normal, vertexConsumer, startColour, endColour, length, -0.125f, 0.125f, 0.125f, 0.125f, SPRITE.getMinU(), SPRITE.getMaxU(), SPRITE.getMaxV(), SPRITE.getMinV());
-        renderBeamFace(model, normal, vertexConsumer, new RGBColour(255, 0, 0), endColour, length, 0.125f, -0.125f, -0.125f, -0.125f, SPRITE.getMaxU(), SPRITE.getMinU(), SPRITE.getMinV(), SPRITE.getMaxV());
+        //renderBeamFace(model, normal, vertexConsumer, startColour, new RGBColour(0,0,255), length, -0.125f, 0.125f, 0.125f, 0.125f, SPRITE.getMinU(), SPRITE.getMaxU(), SPRITE.getMaxV(), SPRITE.getMinV());
+        //renderBeamFace(model, normal, vertexConsumer, new RGBColour(255, 0, 0), endColour, length, 0.125f, -0.125f, -0.125f, -0.125f, SPRITE.getMaxU(), SPRITE.getMinU(), SPRITE.getMinV(), SPRITE.getMaxV());
     }
 
     private static void renderBeamFace(final Matrix4f modelMatrix, final Matrix3f normalMatrix, final VertexConsumer vertices, final RGBColour first, final RGBColour second, final double length, final float x1, final float z1, final float x2, final float z2, final float u1, final float u2, final float v1, final float v2) {
@@ -95,14 +96,21 @@ public class LuxBeamRenderer {
         consumer.vertex(model, (float) x, (float) y, (float) z).color(r, g, b, a).texture(u, v).light(15728880).normal(normal, 0, 1, 0).next();
     }
 
+    //fixme
     private static double getAngle(final Vec3d direction, final Vec3d origin, final Vec3d point) {
         final Vec3d p = VecUtil.projectOntoPlane(direction, origin, point).subtract(origin);
-        final Vec3d axis = VecUtil.cross(direction, new Vec3d(0, point.z < 0 ? 1 : 1, 0));
+        Vec3d up = new Vec3d(0, 1, 0);
+        if(direction.y==1) {
+            up = new Vec3d(0,0,-1);
+        } else if(direction.y==-1) {
+            up = new Vec3d(0, 0, 1);
+        }
+        final Vec3d axis = VecUtil.cross(direction, up);
         double dot = p.dotProduct(axis) / (p.length());
-        final Vec3d cross = VecUtil.cross(p, origin);
-        boolean reverse = true;
+        final Vec3d cross = VecUtil.cross(p, axis);
+        boolean reverse = false;
         if (direction.dotProduct(cross) > 0) { // Or > 0
-            reverse = false;
+            reverse = true;
         }
         dot = MathHelper.clamp(dot, -1, 1);
         final double angle = Math.acos(dot);
@@ -110,7 +118,7 @@ public class LuxBeamRenderer {
     }
 
     public static void init() {
-        WorldRenderEvents.AFTER_ENTITIES.register(LuxBeamRenderer::render);
+        WorldRenderEvents.BEFORE_ENTITIES.register(LuxBeamRenderer::render);
         ClientTickEvents.START_CLIENT_TICK.register(client -> RENDER_QUEUE.clear());
         InvalidateRenderStateCallback.EVENT.register(() -> {
             SPRITE = null;

@@ -75,7 +75,7 @@ public final class RGBColour {
         return new HSVColour(h, s, v).toRgb(a);
     }
 
-    private HSVColour toHSV() {
+    public HSVColour toHSV() {
         final double inR = r / 255d;
         final double inG = g / 255d;
         final double inB = b / 255d;

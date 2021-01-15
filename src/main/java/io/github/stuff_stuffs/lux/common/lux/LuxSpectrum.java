@@ -1,6 +1,7 @@
 package io.github.stuff_stuffs.lux.common.lux;
 
 import com.google.common.base.Preconditions;
+import io.github.stuff_stuffs.lux.common.util.HSVColour;
 import io.github.stuff_stuffs.lux.common.util.RGBColour;
 import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.Tag;
@@ -85,14 +86,16 @@ public class LuxSpectrum {
         float r = 0;
         float g = 0;
         float b = 0;
-        double alpha = MathHelper.clamp(sum/(double)LuxType.LUX_TYPE_COUNT, 0.1, 1);
+        double alpha = MathHelper.clamp(sum/(double)100, 0.1, 1);
         for (final LuxType luxType : LuxType.LUX_TYPES) {
             final float amount = getAmount(luxType);
             r = Math.min(255, r + (luxType.getColour().getR() * amount));
             g = Math.min(255, g + (luxType.getColour().getG() * amount));
             b = Math.min(255, b + (luxType.getColour().getB() * amount));
         }
-        return new RGBColour((int) r, (int) g, (int) b, (int) (alpha*255));
+        HSVColour hsvColour = new RGBColour((int) r, (int) g, (int) b, (int) (alpha*255)).toHSV();
+        HSVColour bright = new HSVColour(hsvColour.getH(), hsvColour.getS(), 1);
+        return bright.toRgb((int) (alpha*255));
     }
 
     @Override
