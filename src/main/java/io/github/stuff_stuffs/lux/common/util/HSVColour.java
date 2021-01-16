@@ -32,17 +32,17 @@ public final class HSVColour {
         final double t = v * (1.0 - (s * (1.0 - ff)));
         switch (i) {
             case 0:
-                return new RGBColour((int) (v * 255), (int) (t * 255), (int) (p * 255));
+                return new RGBColour((int) (v * 255), (int) (t * 255), (int) (p * 255), a);
             case 1:
-                return new RGBColour((int) (q * 255), (int) (v * 255), (int) (p * 255));
+                return new RGBColour((int) (q * 255), (int) (v * 255), (int) (p * 255), a);
             case 2:
-                return new RGBColour((int) (p * 255), (int) (v * 255), (int) (t * 255));
+                return new RGBColour((int) (p * 255), (int) (v * 255), (int) (t * 255), a);
             case 3:
-                return new RGBColour((int) (p * 255), (int) (q * 255), (int) (v * 255));
+                return new RGBColour((int) (p * 255), (int) (q * 255), (int) (v * 255), a);
             case 4:
-                return new RGBColour((int) (t * 255), (int) (p * 255), (int) (v * 255));
+                return new RGBColour((int) (t * 255), (int) (p * 255), (int) (v * 255), a);
             default:
-                return new RGBColour((int) (v * 255), (int) (p * 255), (int) (q * 255));
+                return new RGBColour((int) (v * 255), (int) (p * 255), (int) (q * 255), a);
         }
     }
 

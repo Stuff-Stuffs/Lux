@@ -21,7 +21,7 @@ public class EmitterBlockEntity extends BlockEntity {
             final BlockState state = getCachedState();
             final Direction direction = state.get(Properties.FACING);
             final Vec3d dir = new Vec3d(direction.getOffsetX(), direction.getOffsetY(), direction.getOffsetZ());
-            luxBeam = LuxBeam.create(Vec3d.ofCenter(getPos()), dir, 0.95, LuxSpectrum.WHITE_SPECTRUM);
+            luxBeam = LuxBeam.create(Vec3d.ofCenter(getPos()), dir, 0.8, LuxSpectrum.scale(LuxSpectrum.WHITE_SPECTRUM,100));
         }
         luxBeam.tick(world);
     }

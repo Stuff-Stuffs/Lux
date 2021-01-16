@@ -20,9 +20,14 @@ import net.minecraft.util.math.*;
 
 import java.util.List;
 
-public class LuxBeamRenderer {
+public final class LuxBeamRenderer extends RenderLayer {
+    public static final RenderLayer LUX_BEAM_LAYER;
     private static final List<LuxBeam.RenderableBeam> RENDER_QUEUE = new ObjectArrayList<>(32);
     private static Sprite SPRITE;
+
+    private LuxBeamRenderer(final String name, final VertexFormat vertexFormat, final VertexFormat.DrawMode drawMode, final int expectedBufferSize, final boolean hasCrumbling, final boolean translucent, final Runnable startAction, final Runnable endAction) {
+        super(name, vertexFormat, drawMode, expectedBufferSize, hasCrumbling, translucent, startAction, endAction);
+    }
 
     public static void enqueueRender(final LuxBeam.RenderableBeam beam) {
         RENDER_QUEUE.add(beam);
@@ -43,7 +48,7 @@ public class LuxBeamRenderer {
         final double cz = camera.getPos().z;
         final VertexConsumerProvider vertices = context.consumers();
         assert vertices != null;
-        final VertexConsumer vertexConsumer = vertices.getBuffer(RenderLayer.getSolid()/*RenderLayer.getBeaconBeam(new Identifier("minecraft", "textures/block/white_wool.png"), true)*/);
+        final VertexConsumer vertexConsumer = vertices.getBuffer(LUX_BEAM_LAYER);
         final MatrixStack matrices = context.matrixStack();
         final float tickDelta = context.tickDelta();
         for (final LuxBeam.RenderableBeam beam : RENDER_QUEUE) {
@@ -71,38 +76,38 @@ public class LuxBeamRenderer {
             final Quaternion quaternion = Vec3f.POSITIVE_X.getRadialQuaternion((float) pitch);
             matrices.multiply(quaternion);
         }
-        float roll = (float) getAngle(interpolatedDirection, interpBeamPos, camera.getPos());
+        final float roll = (float) getAngle(interpolatedDirection, interpBeamPos, camera.getPos());
         matrices.multiply(Vec3f.POSITIVE_Z.getRadialQuaternion(roll));
         final double length = beam.getLength();
         final Matrix4f model = matrices.peek().getModel();
         final Matrix3f normal = matrices.peek().getNormal();
         final RGBColour startColour = beam.getSpectrum().toColour();
         final RGBColour endColour = beam.getRemainingSpectrum(beam.getLength()).toColour();
-        renderBeamFace(model, normal, vertexConsumer, startColour, endColour, length, -0.125f, -0.125f, -0.125f, 0.125f, SPRITE.getMinU(), SPRITE.getMaxU(), SPRITE.getMaxV(), SPRITE.getMinV());
-        //renderBeamFace(model, normal, vertexConsumer, new RGBColour(0, 255, 0), endColour, length, 0.125f, 0.125f, 0.125f, -0.125f, SPRITE.getMaxU(), SPRITE.getMinU(), SPRITE.getMinV(), SPRITE.getMaxV());
-
-        //renderBeamFace(model, normal, vertexConsumer, startColour, new RGBColour(0,0,255), length, -0.125f, 0.125f, 0.125f, 0.125f, SPRITE.getMinU(), SPRITE.getMaxU(), SPRITE.getMaxV(), SPRITE.getMinV());
-        //renderBeamFace(model, normal, vertexConsumer, new RGBColour(255, 0, 0), endColour, length, 0.125f, -0.125f, -0.125f, -0.125f, SPRITE.getMaxU(), SPRITE.getMinU(), SPRITE.getMinV(), SPRITE.getMaxV());
+        renderBeamFace(model, normal, vertexConsumer, startColour, endColour, length, -0.125f, -0.125f, -0.125f, 0.125f, 0, 1, (float) length, 0);
     }
 
     private static void renderBeamFace(final Matrix4f modelMatrix, final Matrix3f normalMatrix, final VertexConsumer vertices, final RGBColour first, final RGBColour second, final double length, final float x1, final float z1, final float x2, final float z2, final float u1, final float u2, final float v1, final float v2) {
         vertex(x1, z1, 0, first.getR(), first.getG(), first.getB(), first.getA(), u2, v1, vertices, modelMatrix, normalMatrix);
         vertex(x1, z1, length, second.getR(), second.getG(), second.getB(), second.getA(), u2, v2, vertices, modelMatrix, normalMatrix);
         vertex(x2, z2, length, second.getR(), second.getG(), second.getB(), second.getA(), u1, v2, vertices, modelMatrix, normalMatrix);
-        vertex(x2, z2, 0, first.getR(), first.getG(), first.getB(), first.getA(), u1, v1, vertices, modelMatrix, normalMatrix);
+
+        vertex(x2, z2, length, second.getR(), second.getG(), second.getB(), second.getA(), u1, v2, vertices, modelMatrix, normalMatrix);
+        vertex(x1, z2, 0, first.getR(), first.getG(), first.getB(), first.getA(), u1, v1, vertices, modelMatrix, normalMatrix);
+        vertex(x1, z1, 0, first.getR(), first.getG(), first.getB(), first.getA(), u2, v1, vertices, modelMatrix, normalMatrix);
+        //vertex(x2, z2, 0, first.getR(), first.getG(), first.getB(), first.getA(), u1, v1, vertices, modelMatrix, normalMatrix);
     }
 
     private static void vertex(final double x, final double y, final double z, final int r, final int g, final int b, final int a, final float u, final float v, final VertexConsumer consumer, final Matrix4f model, final Matrix3f normal) {
-        consumer.vertex(model, (float) x, (float) y, (float) z).color(r, g, b, a).texture(u, v).light(15728880).normal(normal, 0, 1, 0).next();
+        consumer.vertex(model, (float) x, (float) y, (float) z).color(r, g, b, a).texture(u, v).next();
     }
 
     //fixme
     private static double getAngle(final Vec3d direction, final Vec3d origin, final Vec3d point) {
         final Vec3d p = VecUtil.projectOntoPlane(direction, origin, point).subtract(origin);
         Vec3d up = new Vec3d(0, 1, 0);
-        if(direction.y==1) {
-            up = new Vec3d(0,0,-1);
-        } else if(direction.y==-1) {
+        if (direction.y == 1) {
+            up = new Vec3d(0, 0, -1);
+        } else if (direction.y == -1) {
             up = new Vec3d(0, 0, 1);
         }
         final Vec3d axis = VecUtil.cross(direction, up);
@@ -118,12 +123,17 @@ public class LuxBeamRenderer {
     }
 
     public static void init() {
-        WorldRenderEvents.BEFORE_ENTITIES.register(LuxBeamRenderer::render);
+        WorldRenderEvents.AFTER_SETUP.register(LuxBeamRenderer::render);
         ClientTickEvents.START_CLIENT_TICK.register(client -> RENDER_QUEUE.clear());
         InvalidateRenderStateCallback.EVENT.register(() -> {
             SPRITE = null;
             RenderSystem.texParameter(3553, 10242, 10497);
             RenderSystem.texParameter(3553, 10243, 10497);
         });
+    }
+
+    static {
+        final RenderLayer.MultiPhaseParameters multiPhaseParameters = RenderLayer.MultiPhaseParameters.builder().texture(new RenderPhase.Texture(new Identifier("minecraft", "textures/block/white_wool.png"), false, false)).shadeModel(SMOOTH_SHADE_MODEL).transparency(TRANSLUCENT_TRANSPARENCY).target(RenderPhase.TRANSLUCENT_TARGET).diffuseLighting(DISABLE_DIFFUSE_LIGHTING).alpha(RenderPhase.ZERO_ALPHA).lightmap(DISABLE_LIGHTMAP).writeMaskState(RenderPhase.ALL_MASK).build(false);
+        LUX_BEAM_LAYER = RenderLayer.of("lux_beam", VertexFormats.POSITION_COLOR_TEXTURE, VertexFormat.DrawMode.TRIANGLES, 512, false, true, multiPhaseParameters);
     }
 }

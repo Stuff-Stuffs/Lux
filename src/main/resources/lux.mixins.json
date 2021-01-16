@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "io.github.stuff_stuffs.lux.lux.mixin",
+  "package": "io.github.stuff_stuffs.lux.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
   ],
