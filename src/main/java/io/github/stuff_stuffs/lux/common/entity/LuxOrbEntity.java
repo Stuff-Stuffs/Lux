@@ -87,11 +87,7 @@ public class LuxOrbEntity extends Entity implements LuxOrb {
                 if (rayCast != null && rayCast.getType() != HitResult.Type.MISS && !rayCast.isInsideBlock()) {
                     final LuxReceiver luxReceiver = LuxApi.LUX_RECEIVER_BLOCK_LOOKUP.get(world, pos, null);
                     if (luxReceiver != null) {
-                        final Vec3d collision = luxReceiver.getCollision(LuxOrbEntity.this, pos, world);
-                        if (collision != null) {
-                            luxReceiver.receive(LuxOrbEntity.this);
-                        }
-                        return collision;
+                        return luxReceiver.receive(this, pos, world);
                     }
                     return rayCast.getPos();
                 } else {

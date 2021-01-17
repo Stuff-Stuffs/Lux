@@ -1,5 +1,6 @@
 package io.github.stuff_stuffs.lux.common.blocks.entity;
 
+import io.github.stuff_stuffs.lux.common.api.BeamInteraction;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
