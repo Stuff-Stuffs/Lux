@@ -5,7 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import org.jetbrains.annotations.Nullable;
 
-public class EntityFilter<T extends Entity> implements class_5575<Entity, T> {
+public final class EntityFilter<T extends Entity> implements class_5575<Entity, T> {
     private final Class<T> clazz;
     private final EntityType<T> entityType;
 

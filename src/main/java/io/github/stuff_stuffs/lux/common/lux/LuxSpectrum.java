@@ -81,12 +81,11 @@ public class LuxSpectrum {
         buf.writeIntArray(toIntArray());
     }
 
-    //fixme
     public RGBColour toColour() {
         float r = 0;
         float g = 0;
         float b = 0;
-        double alpha = MathHelper.clamp(sum/(double)100, 0.1, 1);
+        double alpha = MathHelper.clamp(sum/(double)100, 0.5, 1);
         for (final LuxType luxType : LuxType.LUX_TYPES) {
             final float amount = getAmount(luxType);
             r = Math.min(255, r + (luxType.getColour().getR() * amount));

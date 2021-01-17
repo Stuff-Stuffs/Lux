@@ -1,10 +1,9 @@
 package io.github.stuff_stuffs.lux.common.blocks.entity;
 
 import io.github.stuff_stuffs.lux.common.api.LuxReceiver;
-import io.github.stuff_stuffs.lux.common.lux.LuxBeam;
+import io.github.stuff_stuffs.lux.common.lux.LuxOrb;
 import io.github.stuff_stuffs.lux.common.lux.LuxSpectrum;
 import io.github.stuff_stuffs.lux.common.util.VecUtil;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -15,12 +14,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.function.Consumer;
-
 public abstract class AbstractPaneBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
     private static final double RADIUS = 0.5;
-    private final List<Incoming> incomingBeams = new ObjectArrayList<>();
     private final LuxReceiver luxReceiver;
     private final Vec3d planeOrigin;
     private Vec3d planeNormal;
@@ -31,27 +26,28 @@ public abstract class AbstractPaneBlockEntity extends BlockEntity implements Blo
         planeNormal = new Vec3d(0, 0, 1);
         luxReceiver = new LuxReceiver() {
             @Override
-            public void receive(final LuxBeam luxBeam) {
-                final CollisionResult collisionResult = shouldReflect(luxBeam, planeOrigin, planeNormal);
+            public void receive(final LuxOrb luxOrb) {
+                final CollisionResult collisionResult = shouldReflect(luxOrb, planeOrigin, planeNormal);
                 if (collisionResult != null) {
                     if (collisionResult.planeSide == VecUtil.PlaneSide.FRONT) {
-                        frontInteraction.addIncomingBeams(luxBeam, getPos(), world, planeNormal, planeOrigin, collisionResult, incomingBeams::add);
+                        frontInteraction.onCollision(luxOrb, getPos(), world, planeNormal, planeOrigin, collisionResult);
                     } else {
-                        backInteraction.addIncomingBeams(luxBeam, getPos(), world, planeNormal, planeOrigin, collisionResult, incomingBeams::add);
+                        backInteraction.onCollision(luxOrb, getPos(), world, planeNormal, planeOrigin, collisionResult);
                     }
                 }
             }
 
             @Override
-            public @Nullable Vec3d getCollision(final LuxBeam luxBeam, final BlockPos blockPos, final World world, final double length) {
-                final CollisionResult collisionResult = AbstractPaneBlockEntity.getCollision(luxBeam.getPos(), luxBeam.getDirection(), planeOrigin, planeNormal, length);
+            public @Nullable Vec3d getCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world) {
+                final double length = luxOrb.getVelocity().length();
+                final CollisionResult collisionResult = AbstractPaneBlockEntity.getCollision(luxOrb.getPos(), luxOrb.getVelocity().multiply(1 / length), planeOrigin, planeNormal, length);
                 if (collisionResult == null) {
                     return null;
                 }
                 if (collisionResult.planeSide == VecUtil.PlaneSide.FRONT) {
-                    return frontInteraction.getCollision(luxBeam, blockPos, world, planeNormal, planeOrigin, collisionResult);
+                    return frontInteraction.getCollision(luxOrb, blockPos, world, planeNormal, planeOrigin, collisionResult);
                 } else if (collisionResult.planeSide == VecUtil.PlaneSide.BACK) {
-                    return backInteraction.getCollision(luxBeam, blockPos, world, planeNormal, planeOrigin, collisionResult);
+                    return backInteraction.getCollision(luxOrb, blockPos, world, planeNormal, planeOrigin, collisionResult);
                 }
                 return null;
             }
@@ -65,17 +61,6 @@ public abstract class AbstractPaneBlockEntity extends BlockEntity implements Blo
 
     public Vec3d getPlaneNormal() {
         return planeNormal;
-    }
-
-    public void tick() {
-        for (final Incoming incomingBeam : incomingBeams) {
-            if (incomingBeam.spectrum.getBrightness() > 0.001) {
-                final Vec3d collisionPoint = incomingBeam.collisionPoint;
-                final LuxBeam.OwnedLuxBeam luxBeam = LuxBeam.create(collisionPoint, incomingBeam.dir, incomingBeam.focus, incomingBeam.spectrum);
-                luxBeam.tick(world);
-            }
-        }
-        incomingBeams.clear();
     }
 
     public void setPlaneNormal(final Vec3d planeNormal) {
@@ -125,73 +110,61 @@ public abstract class AbstractPaneBlockEntity extends BlockEntity implements Blo
         return tag;
     }
 
-    public static class Incoming {
-        public final Vec3d dir;
-        public final Vec3d collisionPoint;
-        public final double focus;
-        public final LuxSpectrum spectrum;
-
-        public Incoming(final Vec3d dir, final Vec3d collisionPoint, final double focus, final LuxSpectrum spectrum) {
-            this.dir = dir;
-            this.collisionPoint = collisionPoint;
-            this.focus = focus;
-            this.spectrum = spectrum;
-        }
-    }
-
     public interface BeamInteraction {
         BeamInteraction REFLECT = new BeamInteraction() {
             @Override
-            public Vec3d getCollision(final LuxBeam luxBeam, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
+            public Vec3d getCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
                 return collisionResult.collisionPoint;
             }
 
             @Override
-            public void addIncomingBeams(final LuxBeam luxBeam, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult, final Consumer<Incoming> consumer) {
-                final Vec3d dir = luxBeam.getDirection().subtract(planeNormal.multiply(2 * planeNormal.dotProduct(luxBeam.getDirection()))).normalize();
-                consumer.accept(new Incoming(dir, collisionResult.collisionPoint, luxBeam.getFocus(), luxBeam.getRemainingSpectrum(collisionResult.collisionPoint)));
+            public void onCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
+                final Vec3d direction = luxOrb.getVelocity().normalize();
+                final Vec3d dir = direction.subtract(planeNormal.multiply(2 * planeNormal.dotProduct(direction))).normalize();
+                LuxOrb.create(world, collisionResult.collisionPoint, dir, luxOrb.getFocus(), luxOrb.getSpectrum());
             }
         };
         BeamInteraction PASS_THROUGH = new BeamInteraction() {
             @Override
-            public Vec3d getCollision(final LuxBeam luxBeam, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
+            public Vec3d getCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
                 return null;
             }
 
             @Override
-            public void addIncomingBeams(final LuxBeam luxBeam, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult, final Consumer<Incoming> consumer) {
+            public void onCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
 
             }
         };
         BeamInteraction HALF_REFLECT = new BeamInteraction() {
             @Override
-            public Vec3d getCollision(final LuxBeam luxBeam, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
+            public Vec3d getCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
                 return collisionResult.collisionPoint;
             }
 
             @Override
-            public void addIncomingBeams(final LuxBeam luxBeam, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult, final Consumer<Incoming> consumer) {
-                final Vec3d dir = luxBeam.getDirection().subtract(planeNormal.multiply(2 * planeNormal.dotProduct(luxBeam.getDirection()))).normalize();
-                final LuxSpectrum spectrum = LuxSpectrum.scale(luxBeam.getRemainingSpectrum(collisionResult.collisionPoint), 0.5f);
-                consumer.accept(new Incoming(dir, collisionResult.collisionPoint, luxBeam.getFocus(), spectrum));
-                consumer.accept(new Incoming(luxBeam.getDirection(), collisionResult.collisionPoint, luxBeam.getFocus(), spectrum));
+            public void onCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
+                final Vec3d direction = luxOrb.getVelocity().normalize();
+                final Vec3d dir = direction.subtract(planeNormal.multiply(2 * planeNormal.dotProduct(direction))).normalize();
+                final LuxSpectrum spectrum = LuxSpectrum.scale(luxOrb.getSpectrum(), 0.5f);
+                LuxOrb.create(world, collisionResult.collisionPoint, dir, luxOrb.getFocus(), spectrum);
+                LuxOrb.create(world, collisionResult.collisionPoint, direction, luxOrb.getFocus(), spectrum);
             }
         };
         BeamInteraction BLOCK = new BeamInteraction() {
             @Override
-            public Vec3d getCollision(final LuxBeam luxBeam, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
+            public Vec3d getCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
                 return collisionResult.collisionPoint;
             }
 
             @Override
-            public void addIncomingBeams(final LuxBeam luxBeam, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult, final Consumer<Incoming> consumer) {
+            public void onCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, final Vec3d planeNormal, final Vec3d planeOrigin, final CollisionResult collisionResult) {
 
             }
         };
 
-        Vec3d getCollision(final LuxBeam luxBeam, final BlockPos blockPos, final World world, Vec3d planeNormal, Vec3d planeOrigin, CollisionResult collisionResult);
+        Vec3d getCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, Vec3d planeNormal, Vec3d planeOrigin, CollisionResult collisionResult);
 
-        void addIncomingBeams(final LuxBeam luxBeam, final BlockPos blockPos, final World world, Vec3d planeNormal, Vec3d planeOrigin, CollisionResult collisionResult, Consumer<Incoming> consumer);
+        void onCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, Vec3d planeNormal, Vec3d planeOrigin, CollisionResult collisionResult);
     }
 
     private static CollisionResult getCollision(final Vec3d pos, final Vec3d direction, final Vec3d planeOrigin, final Vec3d planeNormal, final double length) {
@@ -210,11 +183,12 @@ public abstract class AbstractPaneBlockEntity extends BlockEntity implements Blo
         }
     }
 
-    private static CollisionResult shouldReflect(final LuxBeam luxBeam, final Vec3d planeOrigin, final Vec3d planeNormal) {
-        final VecUtil.RayPlaneIntersection rayPlaneIntersection = VecUtil.rayPlaneIntersection(luxBeam.getPos(), luxBeam.getDirection(), planeOrigin, planeNormal);
+    private static CollisionResult shouldReflect(final LuxOrb luxOrb, final Vec3d planeOrigin, final Vec3d planeNormal) {
+        final Vec3d direction = luxOrb.getVelocity().normalize();
+        final VecUtil.RayPlaneIntersection rayPlaneIntersection = VecUtil.rayPlaneIntersection(luxOrb.getPos(), direction, planeOrigin, planeNormal);
         final double t = rayPlaneIntersection.getDelta();
         if (t > 0) {
-            final Vec3d collision = luxBeam.getPos().add(luxBeam.getDirection().multiply(t));
+            final Vec3d collision = luxOrb.getPos().add(direction.multiply(t));
             final Vec3d delta = collision.subtract(planeOrigin);
             if (VecUtil.chebyshevLength(delta) <= RADIUS) {
                 return new CollisionResult(collision, rayPlaneIntersection.getSide());
