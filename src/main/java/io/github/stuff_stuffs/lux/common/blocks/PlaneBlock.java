@@ -1,6 +1,6 @@
 package io.github.stuff_stuffs.lux.common.blocks;
 
-import io.github.stuff_stuffs.lux.common.blocks.entity.BrightnessMultiplierBlockEntity;
+import io.github.stuff_stuffs.lux.common.blocks.entity.AbstractPlaneBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
@@ -15,25 +15,35 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class BrightnessMultiplierBlock extends Block implements BlockEntityProvider {
-    public BrightnessMultiplierBlock() {
-        super(Settings.of(Material.GLASS));
+import java.util.function.BiFunction;
+
+public class PlaneBlock extends Block implements BlockEntityProvider {
+    private final BiFunction<BlockPos, BlockState, ? extends AbstractPlaneBlockEntity> blockEntityFactory;
+
+    public PlaneBlock(final BiFunction<BlockPos, BlockState, ? extends AbstractPlaneBlockEntity> blockEntityFactory) {
+        this(Settings.of(Material.GLASS), blockEntityFactory);
+    }
+
+    public PlaneBlock(final Settings settings, final BiFunction<BlockPos, BlockState, ? extends AbstractPlaneBlockEntity> blockEntityFactory) {
+        super(settings);
+        this.blockEntityFactory = blockEntityFactory;
     }
 
     @Nullable
     @Override
     public BlockEntity createBlockEntity(final BlockPos pos, final BlockState state) {
-        return new BrightnessMultiplierBlockEntity(pos, state);
+        return blockEntityFactory.apply(pos, state);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public ActionResult onUse(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockHitResult hit) {
         if (!world.isClient()) {
             final BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof BrightnessMultiplierBlockEntity) {
+            if (blockEntity instanceof AbstractPlaneBlockEntity) {
                 final BlockPos blockPos = player.getBlockPos().subtract(pos);
                 final Vec3d delta = new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ()).normalize().multiply(-1);
-                ((BrightnessMultiplierBlockEntity) blockEntity).setPlaneNormal(delta);
+                ((AbstractPlaneBlockEntity) blockEntity).setPlaneNormal(delta);
             }
         }
         return ActionResult.SUCCESS;
