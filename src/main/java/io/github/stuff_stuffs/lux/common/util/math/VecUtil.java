@@ -1,4 +1,4 @@
-package io.github.stuff_stuffs.lux.common.util;
+package io.github.stuff_stuffs.lux.common.util.math;
 
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Quaternion;

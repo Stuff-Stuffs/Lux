@@ -3,11 +3,14 @@ package io.github.stuff_stuffs.lux.common.lux;
 import com.google.common.base.Preconditions;
 import io.github.stuff_stuffs.lux.common.util.HSVColour;
 import io.github.stuff_stuffs.lux.common.util.RGBColour;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.MathHelper;
 
+import java.util.Collection;
 import java.util.EnumMap;
 
 public class LuxSpectrum {
@@ -85,16 +88,16 @@ public class LuxSpectrum {
         float r = 0;
         float g = 0;
         float b = 0;
-        double alpha = MathHelper.clamp(sum/(double)100, 0.5, 1);
+        final double alpha = MathHelper.clamp(sum / (double) 100, 0.5, 1);
         for (final LuxType luxType : LuxType.LUX_TYPES) {
             final float amount = getAmount(luxType);
             r = Math.min(255, r + (luxType.getColour().getR() * amount));
             g = Math.min(255, g + (luxType.getColour().getG() * amount));
             b = Math.min(255, b + (luxType.getColour().getB() * amount));
         }
-        HSVColour hsvColour = new RGBColour((int) r, (int) g, (int) b, (int) (alpha*255)).toHSV();
-        HSVColour bright = new HSVColour(hsvColour.getH(), hsvColour.getS(), 1);
-        return bright.toRgb((int) (alpha*255));
+        final HSVColour hsvColour = new RGBColour((int) r, (int) g, (int) b, (int) (alpha * 255)).toHSV();
+        final HSVColour bright = new HSVColour(hsvColour.getH(), hsvColour.getS(), 1);
+        return bright.toRgb((int) (alpha * 255));
     }
 
     @Override
@@ -167,8 +170,8 @@ public class LuxSpectrum {
         return lux;
     }
 
-    public static LuxSpectrum saturatingAdd(LuxSpectrum first, LuxSpectrum second, final float max) {
-        Preconditions.checkArgument(0<max);
+    public static LuxSpectrum saturatingAdd(final LuxSpectrum first, final LuxSpectrum second, final float max) {
+        Preconditions.checkArgument(0 < max);
         LuxSpectrum lux = EMPTY_SPECTRUM;
         for (final LuxType luxType : LuxType.LUX_TYPES) {
             lux = lux.with(luxType, Math.min(first.getAmount(luxType) + second.getAmount(luxType), max));
@@ -208,6 +211,17 @@ public class LuxSpectrum {
             out = out.with(luxType, lux.getAmount(luxType) * filter.getAmount(luxType));
         }
         return new Filtered(out, subtract(lux, out));
+    }
+
+    public static Collection<Pair<LuxSpectrum, LuxType>> noisySplit(final LuxSpectrum spectrum, final float noisePercent) {
+        assert 0 <= noisePercent && noisePercent <= 1;
+        final LuxSpectrum noise = scale(spectrum, noisePercent / (float) LuxType.LUX_TYPE_COUNT);
+        final LuxSpectrum noiseFree = scale(spectrum, 1 - noisePercent);
+        final Collection<Pair<LuxSpectrum, LuxType>> splits = new ObjectArrayList<>();
+        for (final LuxType luxType : LuxType.LUX_TYPES) {
+            splits.add(new Pair<>(add(noise, noiseFree), luxType));
+        }
+        return splits;
     }
 
     static {

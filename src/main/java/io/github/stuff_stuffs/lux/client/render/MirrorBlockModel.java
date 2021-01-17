@@ -1,7 +1,7 @@
 package io.github.stuff_stuffs.lux.client.render;
 
 import com.mojang.datafixers.util.Pair;
-import io.github.stuff_stuffs.lux.common.util.VecUtil;
+import io.github.stuff_stuffs.lux.common.util.math.VecUtil;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;

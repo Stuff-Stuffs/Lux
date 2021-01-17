@@ -3,7 +3,7 @@ package io.github.stuff_stuffs.lux.common.blocks.entity;
 import io.github.stuff_stuffs.lux.common.api.LuxReceiver;
 import io.github.stuff_stuffs.lux.common.lux.LuxOrb;
 import io.github.stuff_stuffs.lux.common.lux.LuxSpectrum;
-import io.github.stuff_stuffs.lux.common.util.VecUtil;
+import io.github.stuff_stuffs.lux.common.util.math.VecUtil;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -162,6 +162,7 @@ public abstract class AbstractPlaneBlockEntity extends BlockEntity implements Bl
             }
         };
 
+        //TODO can merge these two method
         Vec3d getCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, Vec3d planeNormal, Vec3d planeOrigin, CollisionResult collisionResult);
 
         void onCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world, Vec3d planeNormal, Vec3d planeOrigin, CollisionResult collisionResult);
