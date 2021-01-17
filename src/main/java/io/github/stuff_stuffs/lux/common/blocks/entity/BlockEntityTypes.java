@@ -13,6 +13,7 @@ public final class BlockEntityTypes {
     public static final BlockEntityType<MirrorBlockEntity> MIRROR_BLOCK_ENTITY_TYPE = register(FabricBlockEntityTypeBuilder.create(MirrorBlockEntity::new, Blocks.MIRROR_BLOCK), "mirror");
     public static final BlockEntityType<HalfSilveredMirrorBlockEntity> HALF_SILVERED_MIRROR_BLOCK_ENTITY_TYPE = register(FabricBlockEntityTypeBuilder.create(HalfSilveredMirrorBlockEntity::new, Blocks.HALF_SILVERED_MIRROR_BLOCK), "half_silvered_mirror");
     public static final BlockEntityType<BrightnessMultiplierBlockEntity> BRIGHTNESS_MULTIPLIER_BLOCK_ENTITY_TYPE = register(FabricBlockEntityTypeBuilder.create(BrightnessMultiplierBlockEntity::new, Blocks.BRIGHTNESS_MULTIPLIER_BLOCK), "brightness_multiplier");
+    public static final BlockEntityType<OneWayMirrorBlockEntity> ONE_WAY_MIRROR_BLOCK_ENTITY_TYPE = register(FabricBlockEntityTypeBuilder.create(OneWayMirrorBlockEntity::new, Blocks.ONE_WAY_MIRROR_BLOCK), "one_way_mirror");
 
     private static <T extends BlockEntity> BlockEntityType<T> register(final FabricBlockEntityTypeBuilder<T> builder, final String name) {
         return Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier("lux", name), builder.build());
@@ -24,7 +25,7 @@ public final class BlockEntityTypes {
                 return ((AbstractPlaneBlockEntity) blockEntity).getLuxReceiver();
             }
             return null;
-        }, MIRROR_BLOCK_ENTITY_TYPE, HALF_SILVERED_MIRROR_BLOCK_ENTITY_TYPE, BRIGHTNESS_MULTIPLIER_BLOCK_ENTITY_TYPE);
+        }, MIRROR_BLOCK_ENTITY_TYPE, HALF_SILVERED_MIRROR_BLOCK_ENTITY_TYPE, BRIGHTNESS_MULTIPLIER_BLOCK_ENTITY_TYPE, ONE_WAY_MIRROR_BLOCK_ENTITY_TYPE);
     }
 
     private BlockEntityTypes() {

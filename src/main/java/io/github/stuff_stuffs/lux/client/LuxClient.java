@@ -19,9 +19,11 @@ public class LuxClient implements ClientModInitializer {
         SpawnLuxReceiver.init();
         final Identifier identifier = new Identifier("lux", "block/mirror");
         final Identifier identifier1 = new Identifier("lux", "block/half_silvered_mirror");
+        final Identifier identifier2 = new Identifier("lux", "block/one_way_mirror");
+        MirrorBlockModel model = new MirrorBlockModel();
         ModelLoadingRegistry.INSTANCE.registerResourceProvider(resourceManager -> (resourceId, context) -> {
-            if (resourceId.equals(identifier) || resourceId.equals(identifier1)) {
-                return new MirrorBlockModel();
+            if (resourceId.equals(identifier) || resourceId.equals(identifier1) || resourceId.equals(identifier2)) {
+                return model;
             }
             return null;
         });

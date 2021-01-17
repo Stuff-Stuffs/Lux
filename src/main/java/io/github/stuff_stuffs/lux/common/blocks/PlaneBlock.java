@@ -1,10 +1,7 @@
 package io.github.stuff_stuffs.lux.common.blocks;
 
 import io.github.stuff_stuffs.lux.common.blocks.entity.AbstractPlaneBlockEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockEntityProvider;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Material;
+import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ActionResult;
@@ -12,6 +9,9 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,5 +47,14 @@ public class PlaneBlock extends Block implements BlockEntityProvider {
             }
         }
         return ActionResult.SUCCESS;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public VoxelShape getVisualShape(final BlockState state, final BlockView world, final BlockPos pos, final ShapeContext context) {
+        if (!(context instanceof EntityShapeContext)) {
+            return VoxelShapes.empty();
+        }
+        return super.getVisualShape(state, world, pos, context);
     }
 }

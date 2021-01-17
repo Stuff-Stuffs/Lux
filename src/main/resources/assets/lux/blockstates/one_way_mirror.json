@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "lux:block/one_way_mirror" }
+  }
+}

@@ -36,23 +36,31 @@ public class MirrorBlockModel implements FabricBakedModel, BakedModel, UnbakedMo
         final Vec3f vec3f = new Vec3f();
         Vec3d normal = (Vec3d) ((RenderAttachedBlockView) blockView).getBlockEntityRenderAttachment(pos);
         if (normal == null) {
-            normal = Vec3d.ZERO;
+            normal = new Vec3d(1, 0, 0);
         }
-        Quaternion quaternion = VecUtil.directionToQuaternion(normal);
+        final Quaternion quaternion = VecUtil.directionToQuaternion(normal);
         quaternion.hamiltonProduct(Vec3f.NEGATIVE_X.getDegreesQuaternion(90));
         final Matrix3f matrix3f = new Matrix3f(quaternion);
         context.pushTransform(quad -> {
             for (int i = 0; i < 4; i++) {
                 quad.copyPos(i, vec3f);
-                vec3f.add(0, 15/32f, 0);
+                vec3f.add(0, 15 / 32f, 0);
                 vec3f.add(-0.5f, -0.5f, -0.5f);
                 vec3f.transform(matrix3f);
                 vec3f.add(0.5f, 0.5f, 0.5f);
                 quad.pos(i, vec3f);
 
-                quad.copyNormal(i, vec3f);
+                if(quad.copyNormal(i, vec3f)!=null) {
+                    vec3f.transform(matrix3f);
+                    quad.normal(i, vec3f);
+                }
+            }
+            final Direction cullFace = quad.cullFace();
+            if (cullFace != null) {
+                vec3f.set(cullFace.getOffsetX(), cullFace.getOffsetY(), cullFace.getOffsetZ());
                 vec3f.transform(matrix3f);
-                quad.normal(i, vec3f);
+                Direction transformedCullFace = Direction.getFacing(vec3f.getX(), vec3f.getY(), vec3f.getZ());
+                quad.cullFace(transformedCullFace);
             }
             return true;
         });
