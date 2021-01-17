@@ -1,6 +1,7 @@
 package io.github.stuff_stuffs.lux.common.lux;
 
 import io.github.stuff_stuffs.lux.common.entity.LuxOrbEntity;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -15,6 +16,8 @@ public interface LuxOrb {
     LuxSpectrum getSpectrum();
 
     float getFocus();
+
+    ShapeContext getShapeContext();
 
     static LuxOrb create(final World world, final Vec3d pos, final Vec3d direction, final float focus, final LuxSpectrum spectrum) {
         final LuxOrbEntity luxOrbEntity = new LuxOrbEntity(world, pos, direction.multiply(ORB_VELOCITY), spectrum, focus);

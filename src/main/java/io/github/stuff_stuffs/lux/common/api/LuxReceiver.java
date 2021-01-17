@@ -16,7 +16,7 @@ public interface LuxReceiver {
     default Vec3d getCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world) {
         final Vec3d start = luxOrb.getPos();
         final Vec3d end = luxOrb.getPos().add(luxOrb.getVelocity());
-        final VoxelShape shape = world.getBlockState(blockPos).getCollisionShape(world, blockPos);
+        final VoxelShape shape = world.getBlockState(blockPos).getVisualShape(world, blockPos, luxOrb.getShapeContext());
         final BlockHitResult result = shape.raycast(start, end, blockPos);
         if (result == null || result.getType() == HitResult.Type.MISS) {
             return null;

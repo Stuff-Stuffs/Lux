@@ -108,7 +108,7 @@ public class LuxOrbEntity extends Entity implements LuxOrb {
 
     @Override
     public boolean shouldRender(final double distance) {
-        double d = 256 * getRenderDistanceMultiplier();
+        final double d = 128 * getRenderDistanceMultiplier();
         return distance < d * d;
     }
 
@@ -130,6 +130,11 @@ public class LuxOrbEntity extends Entity implements LuxOrb {
     @Override
     public float getFocus() {
         return focus;
+    }
+
+    @Override
+    public ShapeContext getShapeContext() {
+        return ShapeContext.of(this);
     }
 
     public double getPrevFocus() {
