@@ -20,8 +20,8 @@ public final class BlockEntityTypes {
 
     public static void init() {
         LuxApi.LUX_RECEIVER_BLOCK_LOOKUP.registerForBlockEntities((blockEntity, context) -> {
-            if (blockEntity instanceof AbstractPaneBlockEntity) {
-                return ((AbstractPaneBlockEntity) blockEntity).getLuxReceiver();
+            if (blockEntity instanceof AbstractPlaneBlockEntity) {
+                return ((AbstractPlaneBlockEntity) blockEntity).getLuxReceiver();
             }
             return null;
         }, MIRROR_BLOCK_ENTITY_TYPE, HALF_SILVERED_MIRROR_BLOCK_ENTITY_TYPE, BRIGHTNESS_MULTIPLIER_BLOCK_ENTITY_TYPE);

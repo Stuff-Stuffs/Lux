@@ -14,13 +14,13 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractPaneBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
+public abstract class AbstractPlaneBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
     private static final double RADIUS = 0.5;
     private final LuxReceiver luxReceiver;
     private final Vec3d planeOrigin;
     private Vec3d planeNormal;
 
-    public AbstractPaneBlockEntity(final BlockEntityType<?> blockEntityType, final BlockPos blockPos, final BlockState blockState, final BeamInteraction frontInteraction, final BeamInteraction backInteraction) {
+    public AbstractPlaneBlockEntity(final BlockEntityType<?> blockEntityType, final BlockPos blockPos, final BlockState blockState, final BeamInteraction frontInteraction, final BeamInteraction backInteraction) {
         super(blockEntityType, blockPos, blockState);
         planeOrigin = Vec3d.ofCenter(blockPos);
         planeNormal = new Vec3d(0, 0, 1);
@@ -40,7 +40,7 @@ public abstract class AbstractPaneBlockEntity extends BlockEntity implements Blo
             @Override
             public @Nullable Vec3d getCollision(final LuxOrb luxOrb, final BlockPos blockPos, final World world) {
                 final double length = luxOrb.getVelocity().length();
-                final CollisionResult collisionResult = AbstractPaneBlockEntity.getCollision(luxOrb.getPos(), luxOrb.getVelocity().multiply(1 / length), planeOrigin, planeNormal, length);
+                final CollisionResult collisionResult = AbstractPlaneBlockEntity.getCollision(luxOrb.getPos(), luxOrb.getVelocity().multiply(1 / length), planeOrigin, planeNormal, length);
                 if (collisionResult == null) {
                     return null;
                 }
