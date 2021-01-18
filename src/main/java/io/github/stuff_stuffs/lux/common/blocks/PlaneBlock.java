@@ -54,7 +54,7 @@ public class PlaneBlock extends Block implements BlockEntityProvider {
     @Override
     public VoxelShape getCollisionShape(final BlockState state, final BlockView world, final BlockPos pos, final ShapeContext context) {
         if (context instanceof EntityShapeContext) {
-            return ((EntityShapeContext) context).getEntity().filter(entity -> entity.getType()== EntityTypes.LUX_ORB_ENTITY_TYPE).isPresent()?VoxelShapes.empty():super.getCollisionShape(state, world, pos, context);
+            return ((EntityShapeContext) context).getEntity().filter(entity -> entity.getType()== EntityTypes.LUX_ORB_ENTITY_TYPE).isPresent()?super.getCollisionShape(state, world, pos, context):VoxelShapes.empty();
         }
         return VoxelShapes.empty();
     }
