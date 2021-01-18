@@ -1,6 +1,7 @@
 package io.github.stuff_stuffs.lux.common.blocks;
 
 import io.github.stuff_stuffs.lux.common.blocks.entity.AbstractPlaneBlockEntity;
+import io.github.stuff_stuffs.lux.common.entity.EntityTypes;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -51,10 +52,10 @@ public class PlaneBlock extends Block implements BlockEntityProvider {
 
     @SuppressWarnings("deprecation")
     @Override
-    public VoxelShape getVisualShape(final BlockState state, final BlockView world, final BlockPos pos, final ShapeContext context) {
-        if (!(context instanceof EntityShapeContext)) {
-            return VoxelShapes.empty();
+    public VoxelShape getCollisionShape(final BlockState state, final BlockView world, final BlockPos pos, final ShapeContext context) {
+        if (context instanceof EntityShapeContext) {
+            return ((EntityShapeContext) context).getEntity().filter(entity -> entity.getType()== EntityTypes.LUX_ORB_ENTITY_TYPE).isPresent()?VoxelShapes.empty():super.getCollisionShape(state, world, pos, context);
         }
-        return super.getVisualShape(state, world, pos, context);
+        return VoxelShapes.empty();
     }
 }

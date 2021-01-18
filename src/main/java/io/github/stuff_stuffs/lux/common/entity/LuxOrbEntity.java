@@ -81,7 +81,7 @@ public class LuxOrbEntity extends Entity implements LuxOrb {
         final Vec3d end = start.add(getVelocity());
         final CollisionUtil.Result result = CollisionUtil.rayCast(start, end, pos -> {
             final BlockState blockState = world.getBlockState(pos);
-            final VoxelShape voxelShape = blockState.getVisualShape(world, pos, ShapeContext.of(LuxOrbEntity.this));
+            final VoxelShape voxelShape = blockState.getCollisionShape(world, pos, ShapeContext.of(LuxOrbEntity.this));
             if (!voxelShape.isEmpty()) {
                 final BlockHitResult rayCast = voxelShape.raycast(start, end, pos);
                 if (rayCast != null && rayCast.getType() != HitResult.Type.MISS && !rayCast.isInsideBlock()) {
