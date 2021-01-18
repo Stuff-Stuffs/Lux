@@ -1,6 +1,7 @@
 package io.github.stuff_stuffs.lux.common.lux;
 
 import com.google.common.base.Preconditions;
+import io.github.stuff_stuffs.lux.common.Constants;
 import io.github.stuff_stuffs.lux.common.util.HSVColour;
 import io.github.stuff_stuffs.lux.common.util.RGBColour;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -135,8 +136,9 @@ public class LuxSpectrum {
         return fromIntArray(integers);
     }
 
-    public LuxSpectrum with(final LuxType luxType, final float amount) {
+    public LuxSpectrum with(final LuxType luxType, float amount) {
         Preconditions.checkArgument(0 <= amount);
+        amount = Math.min(amount, Constants.MAX_LUX);
         final EnumMap<LuxType, Float> newMap = new EnumMap<>(fractions);
         final float f = getAmount(luxType);
         newMap.put(luxType, amount);
@@ -146,7 +148,7 @@ public class LuxSpectrum {
     public static LuxSpectrum add(final LuxSpectrum first, final LuxSpectrum second) {
         LuxSpectrum lux = EMPTY_SPECTRUM;
         for (final LuxType luxType : LuxType.LUX_TYPES) {
-            lux = lux.with(luxType, Math.min(first.getAmount(luxType) + second.getAmount(luxType), 1_000));
+            lux = lux.with(luxType, first.getAmount(luxType) + second.getAmount(luxType));
         }
         return lux;
     }
