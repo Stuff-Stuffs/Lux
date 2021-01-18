@@ -48,9 +48,21 @@ public class PrismBlock extends Block implements BlockEntityProvider {
 
     @SuppressWarnings("deprecation")
     @Override
+    public VoxelShape getCullingShape(final BlockState state, final BlockView world, final BlockPos pos) {
+        return VoxelShapes.empty();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public VoxelShape getVisualShape(final BlockState state, final BlockView world, final BlockPos pos, final ShapeContext context) {
+        return VoxelShapes.empty();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
     public VoxelShape getCollisionShape(final BlockState state, final BlockView world, final BlockPos pos, final ShapeContext context) {
         if (context instanceof EntityShapeContext) {
-            return ((EntityShapeContext) context).getEntity().filter(entity -> entity.getType() == EntityTypes.LUX_ORB_ENTITY_TYPE).isPresent()?super.getCollisionShape(state, world, pos, context):VoxelShapes.empty();
+            return ((EntityShapeContext) context).getEntity().filter(entity -> entity.getType() == EntityTypes.LUX_ORB_ENTITY_TYPE).isPresent() ? super.getCollisionShape(state, world, pos, context) : VoxelShapes.empty();
         }
         return VoxelShapes.empty();
     }
