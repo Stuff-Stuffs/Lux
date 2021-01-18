@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class MirrorBlockEntity extends AbstractPlaneBlockEntity implements RenderAttachmentBlockEntity {
     public MirrorBlockEntity(final BlockPos blockPos, final BlockState blockState) {
-        super(BlockEntityTypes.MIRROR_BLOCK_ENTITY_TYPE, blockPos, blockState, BeamInteraction.REFLECT, BeamInteraction.BLOCK);
+        super(BlockEntityTypes.MIRROR_BLOCK_ENTITY_TYPE, blockPos, blockState, BeamInteraction.REFLECT, BeamInteraction.REFLECT);
     }
 
 
