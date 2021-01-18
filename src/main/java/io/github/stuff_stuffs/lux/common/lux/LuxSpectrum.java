@@ -12,6 +12,7 @@ import net.minecraft.util.math.MathHelper;
 
 import java.util.Collection;
 import java.util.EnumMap;
+import java.util.Map;
 
 public class LuxSpectrum {
     public static final LuxSpectrum EMPTY_SPECTRUM;
@@ -20,16 +21,9 @@ public class LuxSpectrum {
     private final EnumMap<LuxType, Float> fractions;
     private final float sum;
 
-    private LuxSpectrum(final EnumMap<LuxType, Float> fractions) {
+    private LuxSpectrum(final EnumMap<LuxType, Float> fractions, final float sum) {
         this.fractions = fractions;
-        float s = 0;
-        for (final LuxType luxType : LuxType.LUX_TYPES) {
-            final Float f = fractions.get(luxType);
-            if (f != null) {
-                s += f;
-            }
-        }
-        sum = s;
+        this.sum = sum;
     }
 
     public static LuxSpectrum scale(final LuxSpectrum spectrum, final float amount) {
@@ -91,9 +85,9 @@ public class LuxSpectrum {
         final double alpha = MathHelper.clamp(sum / (double) 100, 0.5, 1);
         for (final LuxType luxType : LuxType.LUX_TYPES) {
             final float amount = getAmount(luxType);
-            r = Math.min(255, r + (luxType.getColour().getR() * Math.min(amount,1)));
-            g = Math.min(255, g + (luxType.getColour().getG() * Math.min(amount,1)));
-            b = Math.min(255, b + (luxType.getColour().getB() * Math.min(amount,1)));
+            r = Math.min(255, r + (luxType.getColour().getR() * Math.min(amount, 1)));
+            g = Math.min(255, g + (luxType.getColour().getG() * Math.min(amount, 1)));
+            b = Math.min(255, b + (luxType.getColour().getB() * Math.min(amount, 1)));
         }
         final HSVColour hsvColour = new RGBColour((int) r, (int) g, (int) b, (int) (alpha * 255)).toHSV();
         final HSVColour bright = new HSVColour(hsvColour.getH(), hsvColour.getS(), 1);
@@ -124,7 +118,11 @@ public class LuxSpectrum {
         for (int i = 0; i < integers.length; i++) {
             fractions.put(LuxType.byId(i), Float.intBitsToFloat(integers[i]));
         }
-        return new LuxSpectrum(fractions);
+        float sum = 0;
+        for (final Map.Entry<LuxType, Float> entry : fractions.entrySet()) {
+            sum += entry.getValue();
+        }
+        return new LuxSpectrum(fractions, sum);
     }
 
     public static LuxSpectrum fromTag(final Tag tag) {
@@ -140,24 +138,15 @@ public class LuxSpectrum {
     public LuxSpectrum with(final LuxType luxType, final float amount) {
         Preconditions.checkArgument(0 <= amount);
         final EnumMap<LuxType, Float> newMap = new EnumMap<>(fractions);
+        final float f = getAmount(luxType);
         newMap.put(luxType, amount);
-        return new LuxSpectrum(newMap);
-    }
-
-    public static LuxSpectrum mix(final LuxSpectrum first, final LuxSpectrum second, final float w1, final float w2) {
-        assert w1 > 0 && w2 > 0;
-        final EnumMap<LuxType, Float> newMap = new EnumMap<>(LuxType.class);
-        final float w = w1 + w2;
-        for (final LuxType luxType : LuxType.LUX_TYPES) {
-            newMap.put(luxType, first.getAmount(luxType) / w * w1 + second.getAmount(luxType) / w * w2);
-        }
-        return new LuxSpectrum(newMap);
+        return new LuxSpectrum(newMap, sum + (amount - f));
     }
 
     public static LuxSpectrum add(final LuxSpectrum first, final LuxSpectrum second) {
         LuxSpectrum lux = EMPTY_SPECTRUM;
         for (final LuxType luxType : LuxType.LUX_TYPES) {
-            lux = lux.with(luxType, first.getAmount(luxType) + second.getAmount(luxType));
+            lux = lux.with(luxType, Math.min(first.getAmount(luxType) + second.getAmount(luxType), 1_000));
         }
         return lux;
     }
@@ -166,15 +155,6 @@ public class LuxSpectrum {
         LuxSpectrum lux = EMPTY_SPECTRUM;
         for (final LuxType luxType : LuxType.LUX_TYPES) {
             lux = lux.with(luxType, Math.max(first.getAmount(luxType) - second.getAmount(luxType), 0));
-        }
-        return lux;
-    }
-
-    public static LuxSpectrum saturatingAdd(final LuxSpectrum first, final LuxSpectrum second, final float max) {
-        Preconditions.checkArgument(0 < max);
-        LuxSpectrum lux = EMPTY_SPECTRUM;
-        for (final LuxType luxType : LuxType.LUX_TYPES) {
-            lux = lux.with(luxType, Math.min(first.getAmount(luxType) + second.getAmount(luxType), max));
         }
         return lux;
     }
@@ -219,17 +199,17 @@ public class LuxSpectrum {
         final LuxSpectrum noiseFree = scale(spectrum, 1 - noisePercent);
         final Collection<Pair<LuxSpectrum, LuxType>> splits = new ObjectArrayList<>();
         for (final LuxType luxType : LuxType.LUX_TYPES) {
-            splits.add(new Pair<>(noise.with(luxType, noise.getAmount(luxType)+noiseFree.getAmount(luxType)), luxType));
+            splits.add(new Pair<>(noise.with(luxType, noise.getAmount(luxType) + noiseFree.getAmount(luxType)), luxType));
         }
         return splits;
     }
 
     static {
-        EMPTY_SPECTRUM = new LuxSpectrum(new EnumMap<>(LuxType.class));
-        final EnumMap<LuxType, Float> map = new EnumMap<>(LuxType.class);
+        EMPTY_SPECTRUM = new LuxSpectrum(new EnumMap<>(LuxType.class), 0);
+        LuxSpectrum spectrum = EMPTY_SPECTRUM;
         for (final LuxType luxType : LuxType.LUX_TYPES) {
-            map.put(luxType, 1f);
+            spectrum = spectrum.with(luxType, 1);
         }
-        WHITE_SPECTRUM = new LuxSpectrum(map);
+        WHITE_SPECTRUM = spectrum;
     }
 }
