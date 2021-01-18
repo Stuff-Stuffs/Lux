@@ -12,6 +12,7 @@ public class Items {
     public static final BlockItem HALF_SILVERED_MIRROR_ITEM = register(new BlockItem(Blocks.HALF_SILVERED_MIRROR_BLOCK, new Item.Settings()), "half_silvered_mirror");
     public static final BlockItem BRIGHTNESS_MULTIPLIER_BLOCK_ITEM = register(new BlockItem(Blocks.BRIGHTNESS_MULTIPLIER_BLOCK, new Item.Settings()), "brightness_multiplier_block");
     public static final BlockItem ONE_WAY_MIRROR_BLOCK_ITEM = register(new BlockItem(Blocks.ONE_WAY_MIRROR_BLOCK, new Item.Settings()), "one_way_mirror_block");
+    public static final BlockItem PRISM_BLOCK_ITEM = register(new BlockItem(Blocks.PRISM_BLOCK, new Item.Settings()), "prism_block");
 
     private static <T extends Item> T register(final T item, final String name) {
         return Registry.register(Registry.ITEM, new Identifier("lux", name), item);

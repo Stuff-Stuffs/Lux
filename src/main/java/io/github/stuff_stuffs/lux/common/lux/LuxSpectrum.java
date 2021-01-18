@@ -91,9 +91,9 @@ public class LuxSpectrum {
         final double alpha = MathHelper.clamp(sum / (double) 100, 0.5, 1);
         for (final LuxType luxType : LuxType.LUX_TYPES) {
             final float amount = getAmount(luxType);
-            r = Math.min(255, r + (luxType.getColour().getR() * amount));
-            g = Math.min(255, g + (luxType.getColour().getG() * amount));
-            b = Math.min(255, b + (luxType.getColour().getB() * amount));
+            r = Math.min(255, r + (luxType.getColour().getR() * Math.min(amount,1)));
+            g = Math.min(255, g + (luxType.getColour().getG() * Math.min(amount,1)));
+            b = Math.min(255, b + (luxType.getColour().getB() * Math.min(amount,1)));
         }
         final HSVColour hsvColour = new RGBColour((int) r, (int) g, (int) b, (int) (alpha * 255)).toHSV();
         final HSVColour bright = new HSVColour(hsvColour.getH(), hsvColour.getS(), 1);
@@ -215,11 +215,11 @@ public class LuxSpectrum {
 
     public static Collection<Pair<LuxSpectrum, LuxType>> noisySplit(final LuxSpectrum spectrum, final float noisePercent) {
         assert 0 <= noisePercent && noisePercent <= 1;
-        final LuxSpectrum noise = scale(spectrum, noisePercent / (float) LuxType.LUX_TYPE_COUNT);
+        final LuxSpectrum noise = scale(spectrum, noisePercent);
         final LuxSpectrum noiseFree = scale(spectrum, 1 - noisePercent);
         final Collection<Pair<LuxSpectrum, LuxType>> splits = new ObjectArrayList<>();
         for (final LuxType luxType : LuxType.LUX_TYPES) {
-            splits.add(new Pair<>(add(noise, noiseFree), luxType));
+            splits.add(new Pair<>(noise.with(luxType, noise.getAmount(luxType)+noiseFree.getAmount(luxType)), luxType));
         }
         return splits;
     }

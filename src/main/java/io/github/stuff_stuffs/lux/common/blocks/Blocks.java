@@ -13,6 +13,7 @@ public final class Blocks {
     public static final Block HALF_SILVERED_MIRROR_BLOCK = register(new PlaneBlock(HalfSilveredMirrorBlockEntity::new), "half_silvered_mirror");
     public static final Block BRIGHTNESS_MULTIPLIER_BLOCK = register(new PlaneBlock(BrightnessMultiplierBlockEntity::new), "brightness_multiplier");
     public static final Block ONE_WAY_MIRROR_BLOCK = register(new PlaneBlock(OneWayMirrorBlockEntity::new), "one_way_mirror");
+    public static final Block PRISM_BLOCK = register(new PrismBlock(), "prism");
 
     private static <T extends Block> T register(final T block, final String name) {
         return Registry.register(Registry.BLOCK, new Identifier("lux", name), block);
