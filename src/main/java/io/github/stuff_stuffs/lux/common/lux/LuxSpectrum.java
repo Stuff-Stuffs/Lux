@@ -195,13 +195,14 @@ public class LuxSpectrum {
         return new Filtered(out, subtract(lux, out));
     }
 
-    public static Collection<Pair<LuxSpectrum, LuxType>> noisySplit(final LuxSpectrum spectrum, final float noisePercent) {
-        assert 0 <= noisePercent && noisePercent <= 1;
-        final LuxSpectrum noise = scale(spectrum, noisePercent);
-        final LuxSpectrum noiseFree = scale(spectrum, 1 - noisePercent);
+    public static Collection<Pair<LuxSpectrum, LuxType>> noisySplit(final LuxSpectrum spectrum, final float noiseThreshold) {
+        assert 0 <= noiseThreshold;
+        final LuxSpectrum noise = saturate(spectrum, noiseThreshold);
+        final LuxSpectrum noiseFree = subtract(spectrum, noise);
+        final LuxSpectrum scaledNoise = scale(noise, 1f / LuxType.LUX_TYPE_COUNT);
         final Collection<Pair<LuxSpectrum, LuxType>> splits = new ObjectArrayList<>();
         for (final LuxType luxType : LuxType.LUX_TYPES) {
-            splits.add(new Pair<>(noise.with(luxType, noise.getAmount(luxType) + noiseFree.getAmount(luxType)), luxType));
+            splits.add(new Pair<>(noise.with(luxType, noiseFree.getAmount(luxType) + scaledNoise.getAmount(luxType)), luxType));
         }
         return splits;
     }
