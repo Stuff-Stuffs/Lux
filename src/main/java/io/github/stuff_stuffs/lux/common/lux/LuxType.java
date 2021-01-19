@@ -6,6 +6,7 @@ import org.apache.logging.log4j.core.util.ObjectArrayIterator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
+import java.util.Random;
 
 public enum LuxType {
     //TODO more types
@@ -40,6 +41,10 @@ public enum LuxType {
 
     public static LuxType byId(final int id) {
         return LUX_TYPE_ARR[id];
+    }
+
+    public static LuxType getRandom(final Random random) {
+        return LUX_TYPE_ARR[random.nextInt(LUX_TYPE_COUNT)];
     }
 
     private static RGBColour get(final int index, final int count) {

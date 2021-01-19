@@ -18,12 +18,15 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.Collection;
+import java.util.Random;
 
 public class PrismBlockEntity extends AbstractAxisBlockEntity {
+    private final Random random;
     private final LuxReceiver luxReceiver;
 
     public PrismBlockEntity(final BlockPos blockPos, final BlockState blockState) {
         super(BlockEntityTypes.PRISM_BLOCK_ENTITY_TYPE, blockPos, blockState);
+        random = new Random(blockPos.asLong());
         luxReceiver = (luxOrb, pos, world) -> {
             final BlockHitResult hitResult = getCachedState().getCollisionShape(world, pos, luxOrb.getShapeContext()).raycast(luxOrb.getPos(), luxOrb.getPos().add(luxOrb.getVelocity()), pos);
             if (hitResult != null && hitResult.getType() != HitResult.Type.MISS) {
@@ -33,7 +36,7 @@ public class PrismBlockEntity extends AbstractAxisBlockEntity {
                 } else {
                     final double first = -Constants.PRISM_ANGLE;
                     final double last = Constants.PRISM_ANGLE;
-                    final Collection<Pair<LuxSpectrum, LuxType>> splits = LuxSpectrum.noisySplit(luxOrb.getSpectrum(), Constants.PRISM_NOISE_FACTOR);
+                    final Collection<Pair<LuxSpectrum, LuxType>> splits = LuxSpectrum.noisySplit(luxOrb.getSpectrum(), Constants.PRISM_NOISE_FACTOR_LOWER, Constants.PRISM_NOISE_FACTOR_UPPER, random);
                     for (final Pair<LuxSpectrum, LuxType> split : splits) {
                         final double progress = split.getRight().ordinal() / (double) (LuxType.LUX_TYPE_COUNT - 1);
                         final double angle = MathHelper.lerp(progress, first, last);

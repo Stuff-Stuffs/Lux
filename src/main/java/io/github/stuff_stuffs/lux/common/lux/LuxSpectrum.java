@@ -14,6 +14,7 @@ import net.minecraft.util.math.MathHelper;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Random;
 
 public class LuxSpectrum {
     public static final LuxSpectrum EMPTY_SPECTRUM;
@@ -84,12 +85,17 @@ public class LuxSpectrum {
         float g = 0;
         float b = 0;
         final double alpha = MathHelper.clamp(sum / (double) 100, 0.5, 1);
+        float sum = 0;
         for (final LuxType luxType : LuxType.LUX_TYPES) {
             final float amount = getAmount(luxType);
-            r = Math.min(255, r + (luxType.getColour().getR() * Math.min(amount, 1)));
-            g = Math.min(255, g + (luxType.getColour().getG() * Math.min(amount, 1)));
-            b = Math.min(255, b + (luxType.getColour().getB() * Math.min(amount, 1)));
+            sum += amount;
+            r = r + luxType.getColour().getR() * amount;
+            g = g + luxType.getColour().getG() * amount;
+            b = b + luxType.getColour().getB() * amount;
         }
+        r /= sum;
+        g /= sum;
+        b /= sum;
         final HSVColour hsvColour = new RGBColour((int) r, (int) g, (int) b, (int) (alpha * 255)).toHSV();
         final HSVColour bright = new HSVColour(hsvColour.getH(), hsvColour.getS(), 1);
         return bright.toRgb((int) (alpha * 255));
@@ -169,6 +175,16 @@ public class LuxSpectrum {
         return spectrum;
     }
 
+    public static LuxSpectrum noisySaturate(LuxSpectrum spectrum, final float lower, final float max, final Random random) {
+        Preconditions.checkArgument(0 <= lower);
+        Preconditions.checkArgument(lower <= max);
+        for (final LuxType luxType : LuxType.LUX_TYPES) {
+            final float currentMax = MathHelper.lerp(random.nextFloat(), lower, max);
+            spectrum = spectrum.with(luxType, Math.min(spectrum.getAmount(luxType), currentMax));
+        }
+        return spectrum;
+    }
+
     public static final class Filtered {
         private final LuxSpectrum passed;
         private final LuxSpectrum filtered;
@@ -195,16 +211,39 @@ public class LuxSpectrum {
         return new Filtered(out, subtract(lux, out));
     }
 
-    public static Collection<Pair<LuxSpectrum, LuxType>> noisySplit(final LuxSpectrum spectrum, final float noiseThreshold) {
-        assert 0 <= noiseThreshold;
-        final LuxSpectrum noise = saturate(spectrum, noiseThreshold);
+    public static Collection<Pair<LuxSpectrum, LuxType>> noisySplit(final LuxSpectrum spectrum, final float lowerNoiseThreshold, final float upperNoiseThreshold, final Random random) {
+        Preconditions.checkArgument(0 <= lowerNoiseThreshold);
+        Preconditions.checkArgument(lowerNoiseThreshold <= upperNoiseThreshold);
+        final LuxSpectrum noise = noisySaturate(spectrum, lowerNoiseThreshold, upperNoiseThreshold, random);
         final LuxSpectrum noiseFree = subtract(spectrum, noise);
-        final LuxSpectrum scaledNoise = scale(noise, 1f / LuxType.LUX_TYPE_COUNT);
-        final Collection<Pair<LuxSpectrum, LuxType>> splits = new ObjectArrayList<>();
+        int count = 0;
+        LuxType max = null;
+        float maxVal = -Float.MAX_VALUE;
         for (final LuxType luxType : LuxType.LUX_TYPES) {
-            splits.add(new Pair<>(noise.with(luxType, noiseFree.getAmount(luxType) + scaledNoise.getAmount(luxType)), luxType));
+            final float amount = noiseFree.getAmount(luxType);
+            if (!MathHelper.approximatelyEquals(amount, 0)) {
+                count++;
+            }
+            if (amount > maxVal) {
+                max = luxType;
+                maxVal = amount;
+            }
         }
-        return splits;
+        if (count == 0) {
+            final Collection<Pair<LuxSpectrum, LuxType>> splits = new ObjectArrayList<>(1);
+            splits.add(new Pair<>(spectrum, max));
+            return splits;
+        } else {
+            final LuxSpectrum scaledNoise = scale(noise, 1f / count);
+            final Collection<Pair<LuxSpectrum, LuxType>> splits = new ObjectArrayList<>(count);
+            for (final LuxType luxType : LuxType.LUX_TYPES) {
+                final float amount = noiseFree.getAmount(luxType);
+                if (!MathHelper.approximatelyEquals(amount, 0)) {
+                    splits.add(new Pair<>(noise.with(luxType, amount + scaledNoise.getAmount(luxType)), luxType));
+                }
+            }
+            return splits;
+        }
     }
 
     static {
