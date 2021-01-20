@@ -14,6 +14,7 @@ public final class Blocks {
     public static final Block BRIGHTNESS_MULTIPLIER_BLOCK = register(new PlaneBlock(BrightnessMultiplierBlockEntity::new), "brightness_multiplier");
     public static final Block ONE_WAY_MIRROR_BLOCK = register(new PlaneBlock(OneWayMirrorBlockEntity::new), "one_way_mirror");
     public static final Block PRISM_BLOCK = register(new PrismBlock(), "prism");
+    public static final Block THRESHOLDING_MIRROR_BLOCK = register(new PlaneBlock(ThresholdingMirrorBlockEntity::new), "thresholding_mirror");
 
     private static <T extends Block> T register(final T block, final String name) {
         return Registry.register(Registry.BLOCK, new Identifier("lux", name), block);

@@ -6,7 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
-public class HalfSilveredMirrorBlockEntity extends AbstractPlaneBlockEntity implements RenderAttachmentBlockEntity {
+public class HalfSilveredMirrorBlockEntity extends AbstractPlaneBlockEntity<HalfSilveredMirrorBlockEntity> implements RenderAttachmentBlockEntity {
     public HalfSilveredMirrorBlockEntity(final BlockPos blockPos, final BlockState blockState) {
         super(BlockEntityTypes.HALF_SILVERED_MIRROR_BLOCK_ENTITY_TYPE, blockPos, blockState, BeamInteraction.HALF_REFLECT, BeamInteraction.HALF_REFLECT);
     }

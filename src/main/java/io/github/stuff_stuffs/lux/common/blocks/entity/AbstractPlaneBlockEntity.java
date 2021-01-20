@@ -11,13 +11,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
-public abstract class AbstractPlaneBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
+public abstract class AbstractPlaneBlockEntity<ThisType extends AbstractPlaneBlockEntity<ThisType>> extends BlockEntity implements BlockEntityClientSerializable {
     private static final double RADIUS = 0.5;
     private final LuxReceiver luxReceiver;
     private final Vec3d planeOrigin;
     private Vec3d planeNormal;
 
-    public AbstractPlaneBlockEntity(final BlockEntityType<?> blockEntityType, final BlockPos blockPos, final BlockState blockState, final BeamInteraction frontInteraction, final BeamInteraction backInteraction) {
+    public AbstractPlaneBlockEntity(final BlockEntityType<?> blockEntityType, final BlockPos blockPos, final BlockState blockState, final BeamInteraction<? super ThisType> frontInteraction, final BeamInteraction<? super ThisType> backInteraction) {
         super(blockEntityType, blockPos, blockState);
         planeOrigin = Vec3d.ofCenter(blockPos);
         planeNormal = new Vec3d(0, 0, 1);
@@ -25,9 +25,9 @@ public abstract class AbstractPlaneBlockEntity extends BlockEntity implements Bl
             final BeamInteraction.CollisionResult collisionResult = BeamInteraction.getCollision(luxOrb, planeOrigin, planeNormal, RADIUS);
             if (collisionResult != null) {
                 if (collisionResult.planeSide == VecUtil.PlaneSide.FRONT) {
-                    return frontInteraction.onCollision(luxOrb, pos, world, planeNormal, planeOrigin, collisionResult);
+                    return frontInteraction.onCollision(luxOrb, pos, world, planeNormal, planeOrigin, collisionResult, (ThisType) AbstractPlaneBlockEntity.this);
                 } else if (collisionResult.planeSide == VecUtil.PlaneSide.BACK) {
-                    return backInteraction.onCollision(luxOrb, pos, world, planeNormal, planeOrigin, collisionResult);
+                    return backInteraction.onCollision(luxOrb, pos, world, planeNormal, planeOrigin, collisionResult, (ThisType) AbstractPlaneBlockEntity.this);
                 }
             }
             return null;

@@ -8,7 +8,6 @@ import io.github.stuff_stuffs.lux.common.lux.LuxType;
 import io.github.stuff_stuffs.lux.common.util.math.ImmutableMatrix3d;
 import io.github.stuff_stuffs.lux.common.util.math.QuaternionD;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.util.Pair;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -31,7 +30,7 @@ public class PrismBlockEntity extends AbstractAxisBlockEntity {
             final BlockHitResult hitResult = getCachedState().getCollisionShape(world, pos, luxOrb.getShapeContext()).raycast(luxOrb.getPos(), luxOrb.getPos().add(luxOrb.getVelocity()), pos);
             if (hitResult != null && hitResult.getType() != HitResult.Type.MISS) {
                 final Vec3d dir = luxOrb.getVelocity().normalize();
-                if (Math.abs(dir.dotProduct(getAxis())) >0.999) {
+                if (Math.abs(dir.dotProduct(getAxis())) > 0.999) {
                     return null;
                 } else {
                     final double first = -Constants.PRISM_ANGLE;

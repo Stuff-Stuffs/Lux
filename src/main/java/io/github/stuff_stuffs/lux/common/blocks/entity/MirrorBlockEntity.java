@@ -6,7 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
-public class MirrorBlockEntity extends AbstractPlaneBlockEntity implements RenderAttachmentBlockEntity {
+public class MirrorBlockEntity extends AbstractPlaneBlockEntity<MirrorBlockEntity> implements RenderAttachmentBlockEntity {
     public MirrorBlockEntity(final BlockPos blockPos, final BlockState blockState) {
         super(BlockEntityTypes.MIRROR_BLOCK_ENTITY_TYPE, blockPos, blockState, BeamInteraction.REFLECT, BeamInteraction.REFLECT);
     }
